@@ -23,6 +23,7 @@ with
     door_exp_dt AS (
         SELECT 20200702 as dt
     )
+-- Find the visits in the experiment
 SELECT DISTINCT dt,
                 visit_id,
                 CASE
@@ -35,7 +36,7 @@ WHERE dt > (SELECT dt FROM door_exp_dt)
   AND user_experience ILIKE '%iplwb_cb16%'
   AND destination = 'PS_IPLAYER';
 
-SELECT exp_group, count(DISTINCT dt||visit_id) as num_visits FROM vb_door_exp_group GROUP BY 1;
+
 ------
 CREATE TEMP TABLE vb_exp_door_seen AS
 with
@@ -43,7 +44,8 @@ with
     door_exp_dt AS (
         SELECT 20200702 as dt
     ),
-    -- Get all the impressions on each door
+    -- Get all the impressions on each door. Each user should have one impression for each door = 2 per visit
+    -- If they've seen the door before they won't see it again, or if they're in the control group, so label this as no-door.
     door_impr AS (
         SELECT DISTINCT dt, visit_id, container, attribute, publisher_impressions
                             FROM s3_audience.publisher
@@ -52,7 +54,7 @@ with
                               AND destination = 'PS_IPLAYER'
                               AND publisher_impressions = 1
         ),
-     -- Get each visit in the exp (control and variant) and their impression on the door or not.
+     -- Link the impressions with the visits experiment group data
      door_impr_all_visits AS (
         SELECT DISTINCT a.dist_visit_id,
                         a.exp_group,
@@ -72,15 +74,16 @@ GROUP BY 1, 2
 ORDER BY 1, 2;
 
 
-SELECT *
-FROM vb_exp_door_seen;
+SELECT * FROM vb_exp_door_seen;
 
+-- Find how many people clicked each door
 DROP TABLE vb_exp_door_clicked;
 CREATE TEMP TABLE vb_exp_door_clicked AS
 with door_exp_dt AS (
     SELECT 20200702 as dt
 ),
-     -- Find the number of clicks to each door for the experimental group, or no door for control
+     -- Find the number of clicks to each door
+     -- If they've seen the door before they won't see it again, or if they're in the control group, so label this as no-door.
      door_clicks AS (
          SELECT DISTINCT a.dist_visit_id,
                          a.exp_group,
@@ -104,9 +107,10 @@ FROM door_clicks
 GROUP BY 1, 2
 ORDER BY 1, 2;
 
-SELECT *
-FROM vb_exp_door_clicked;
+SELECT * FROM vb_exp_door_clicked;
 
+
+--- Find out what content they viewed -  kids or adult
 with door_exp_dt AS (
     SELECT 20200702 as dt
 ),
@@ -115,6 +119,7 @@ with door_exp_dt AS (
          SELECT DISTINCT master_brand_name, brand_title, series_title, episode_title, episode_id
          FROM prez.scv_vmb
      ),
+     -- Get which door they clicked
      door_clicks AS (
          SELECT DISTINCT a.dist_visit_id,
                          a.exp_group,
