@@ -1,19 +1,22 @@
 /*
 Work to analyse kids door experiment ticket DATAFORCE-562
-1. Find the users/visits in the experiment and label them as control or variant
-2. Find only their first visit. For variant this is when they saw the door, for control this is the first time they had the exp id.
-3. For variant group
+1. Find the visits in the experiment and label them as control or variant.
+2. Identify these user's IDs. For the control group only select their FIRST visit. This will match the variant group only being considered on the first visit.
+3. Only select each users FIRST visit. For variant this is the only time they saw the door. This need to be matched for the control.
+4. For variant group
     a. How many saw the door
     b. How many clicked adult, kids or left.
-4. Link the first visits to the journey start/watched table
+5. Split the variant into two group: kids or adult door chosen. This now gives three groups: control, variant_kids, variant_adult.
+6. Link the visits to the journey start/watched table
     a. Categorise their viewing as kids/adult
-    b. Count number of starts and watched that were adult content and that were kids content
-5. Analysis across variants
-    a. visit_id, control or variant, number of STARTS to KIDS content - per browser statistical significance and uplift
-    b. visit_id, control or variant, number of COMPLETES to KIDS content - per browser statistical significance and uplift
-6. Analysis within variant
-    a. visit_id, kids or adult door, number of STARTS to KIDS content - per browser statistical significance and uplift
-a. visit_id, kids or adult door, number of completes to KIDS content - per browser statistical significance and uplift
+    b. Count number of starts and watched that were adult content and that were kids content. (kids defined as CBBC/Cbeebies masterbrand)
+7. Look at the difference in user numbers across the three variants. If the groups are uneven sampling may need to be done. Consult E&O (Frank on holiday) about this.
+8. Analysis across variants
+    a. visit_id, exp_group, number of STARTS to KIDS content - per browser statistical significance and uplift using R package.
+    b. visit_id, exp_group, number of COMPLETES to KIDS content - per browser statistical significance and uplift using R package.
+    c. visit_id, exp_group, number of STARTS to ADULT content - per browser statistical significance and uplift using R package.
+    b. visit_id, exp_group, number of COMPLETES to ADULT content - per browser statistical significance and uplift using R package.
+
 */
 
 -- Create temp tables
