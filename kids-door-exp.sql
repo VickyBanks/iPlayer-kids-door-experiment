@@ -1,7 +1,7 @@
 /*
 Work to analyse kids door experiment ticket DATAFORCE-562
 1. Find the visits in the experiment and label them as control or variant.
-2. Identify these user's IDs. For the control group only select their FIRST visit. This will match the variant group only being considered on the first visit.
+2. Identify these user's IDs.
 3. Only select each users FIRST visit. For variant this is the only time they saw the door. This need to be matched for the control.
 4. For variant group
     a. How many saw the door
@@ -17,6 +17,8 @@ Work to analyse kids door experiment ticket DATAFORCE-562
     c. visit_id, exp_group, number of STARTS to ADULT content - per browser statistical significance and uplift using R package.
     b. visit_id, exp_group, number of COMPLETES to ADULT content - per browser statistical significance and uplift using R package.
 
+Aside:
+How many people came back more than once? Was this less in the variant group? had the door put them off?
 */
 
 -- Create temp tables
@@ -80,7 +82,7 @@ ORDER BY 1, 2;
 SELECT * FROM vb_exp_door_seen;
 
 -- Find how many people clicked each door
-DROP TABLE vb_exp_door_clicked;
+DROP TABLE IF EXISTS vb_exp_door_clicked;
 CREATE TEMP TABLE vb_exp_door_clicked AS
 with door_exp_dt AS (
     SELECT 20200702 as dt
@@ -144,7 +146,7 @@ with door_exp_dt AS (
                 a.dt || a.visit_id                                              AS dist_visit_id,
                 b.exp_group,
                 CASE
-                    WHEN c.master_brand_name in ('CBBC', 'CBeebies') THEN 'kids_content'
+                    WHEN c.master_brand_name ILIKE '%CBBC%' OR  c.master_brand_name ILIKE '%CBeebies%' THEN 'kids_content'
                     ELSE 'adult_content' END                                    as master_brand_name,
                 ISNULL(d.door_clicked, 'no_click')                              AS door_clicked,
                 a.content_id,
